@@ -18,6 +18,10 @@ dist-ssr
 !.env.example
 !.env.test.example
 
+# Local tool state
+supabase/.temp
+.playwright-mcp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
