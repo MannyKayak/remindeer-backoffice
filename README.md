@@ -20,9 +20,12 @@ npm run dev
 - `npm run build` — typecheck (`tsc -b`) + production build
 - `npm run preview` — preview the production build
 - `npm run lint` — oxlint
+- `npm run test:api` — API tests against the Supabase project in `.env` (see [API tests](#api-tests))
 
-Admin users are created manually in Supabase (Auth > Users). There is no public sign-up flow —
-none is implemented, and none should be added.
+Admin users are created manually: an account in Supabase (Auth > Users), then a row in
+`public.admins` for that user. An account that is not in `public.admins` cannot log in to the
+backoffice and cannot write anything. There is no public sign-up flow — none is implemented,
+and none should be added.
 
 ## Environment variables
 
@@ -83,6 +86,46 @@ If a future screen needs something `useTable`/`useList` can't express (e.g. a Po
 aggregated stats), add a named function to `src/providers/custom/` and import that from the
 page — never call `supabaseClient` inline in the page itself.
 
+## Sections
+
+| Sidebar entry | Route | What the admin does | Spec |
+|---|---|---|---|
+| Dashboard | `/` | placeholder page after login | — |
+| Domande | `/questions` | list, create, edit and delete questions with options, correct answer, category, images, mnemonic, free/paid flag | `spec-questions-crud` |
+| Newsletter | `/newsletter` | tab Clienti: emails collected by the landing form; tab Posta: write, save and send newsletters to selected subscribers | `spec-newsletter` |
+| Contenuti pagine → Home | `/contenuti/home` | edit the landing home page: title, subtitle, hero image, call to action, statistics | `spec-page-contents` |
+
+Contenuti pagine needs migration `20261013120000_page_contents.sql`, which is written but not
+yet applied to the Supabase project (as of 2026-10-13); until then its page shows a load
+error. The landing side that renders the saved content is not built yet.
+
+Specs live in `_bmad-output/specs/`; `_bmad-output/project-context.md` has the decisions and
+the current state of each section. `spec-landing-question-access` covers what the public
+landing may read from the same database.
+
+## Database
+
+This repo owns the schema of the shared Supabase project. Every table, policy, function and
+bucket is a migration in `supabase/migrations/`, including tables first created by the
+landing. The landing repo consumes the schema and never changes it.
+
+- Access is enforced by Row Level Security. Only users in `public.admins` write
+  (`is_admin()`); landing visitors (`anon`) read free questions and page contents and can
+  insert a mailing-list signup, nothing else.
+- Every write on content tables is recorded in `audit_log` by a trigger.
+- `supabase/functions/send-newsletter` is an Edge Function: it holds the Resend API key,
+  which must never reach the SPA.
+- Two image buckets: `question-images` (private, signed URLs) for questions and mnemonics,
+  `page-images` (public) for landing pages.
+
+## API tests
+
+`npm run test:api` runs the suites in `tests/api/` against the real Supabase project in
+`.env`: what an anonymous visitor, a non-admin account and an admin can and cannot do.
+Without `.env.test` only the read-only anonymous suites run. Copy `.env.test.example` to
+`.env.test` and fill in the test accounts to enable the suites that write data; they clean up
+after themselves, and no newsletter is ever sent.
+
 ## Project structure
 
 ```
@@ -90,22 +133,27 @@ src/
   providers/
     supabase-client.ts   # the only place createClient() is called
     data-provider.ts     # @refinedev/supabase dataProvider, wraps supabase-client
-    auth-provider.ts      # Refine AuthProvider, wraps supabase-client.auth.*
-    custom/               # escape hatch for bespoke data access (ADR-003)
+    auth-provider.ts     # Refine AuthProvider, wraps supabase-client.auth.*, rejects non-admins
+    custom/              # bespoke data access (ADR-003): RPCs, storage, Edge Function calls
   layout/
-    app-sidebar.tsx        # shadcn sidebar shell, no menu items yet
+    app-sidebar.tsx      # sidebar menu, including sub-entries (Contenuti pagine → Home)
     app-layout.tsx
   pages/
-    login/                 # email/password login, no sign-up
-    dashboard/              # placeholder post-login page
-  components/ui/            # shadcn/ui components (added on demand, not preinstalled)
+    login/               # email/password login, no sign-up
+    dashboard/           # placeholder post-login page
+    questions/           # Domande: list, create, edit, shared form
+    newsletter/          # Newsletter: subscribers, newsletter list, form, send dialog
+    page-contents/       # Contenuti pagine: one editor per landing page (home)
+  components/
+    image-picker.tsx       # upload or pick an image for questions and mnemonics (private bucket)
+    page-image-picker.tsx  # upload an image for a landing page (public bucket)
+    ui/                    # shadcn/ui components (added on demand, not preinstalled)
+  types/content.ts       # row and document types, updated by hand (ADR-004)
+supabase/
+  migrations/            # the schema of the shared Supabase project
+  functions/             # Edge Functions (send-newsletter)
+tests/api/               # API tests against the real Supabase project
 ```
-
-## Current state
-
-Skeleton only: the app starts, shows the login page, authenticates against Supabase Auth, and
-shows an empty dashboard behind an authenticated route guard with a sidebar that has no real
-menu items yet. No table is wired up (no CRUD on `quiz_completions` or anything else).
 
 ## Known non-issue in `npm audit`
 

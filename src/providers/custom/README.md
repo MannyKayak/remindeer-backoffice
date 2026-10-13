@@ -29,4 +29,11 @@ export async function getQuizCompletionStats(courseId: string) {
 import { getQuizCompletionStats } from "@/providers/custom/quiz-stats";
 ```
 
-Nothing exists in this folder yet — it stays empty until a real resource needs it.
+## What is here
+
+| File | Why it cannot go through the data provider |
+|---|---|
+| `questions.ts` | `save_question` RPC: saves a question, its options and its mnemonic in one transaction |
+| `images.ts` | Storage: upload to the private `question-images` bucket, register the file in `images`, create signed URLs |
+| `newsletters.ts` | `save_newsletter` RPC (draft plus exact recipient set) and the `send-newsletter` Edge Function |
+| `page-images.ts` | Storage: upload to the public `page-images` bucket and build public URLs |
