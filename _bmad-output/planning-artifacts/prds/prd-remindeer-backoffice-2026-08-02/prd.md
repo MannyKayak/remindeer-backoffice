@@ -2,7 +2,7 @@
 title: Remindeer Backoffice — Pannello di Amministrazione
 status: final
 created: 2026-08-02
-updated: 2026-08-02
+updated: 2026-10-13
 ---
 
 # PRD: Remindeer Backoffice — Pannello di Amministrazione
@@ -35,8 +35,16 @@ monorepo, nessuna dipendenza di codice con la landing).
 
 **Tre contraddizioni tra la Roadmap e le decisioni più recenti (ADR-002/
 003/004) sono state rilevate e non risolte d'autorità in questo PRD** — sono
-esplicitate in §8 Open Questions (OQ-1, OQ-2, OQ-3) e vanno chiuse prima
-della fase di architettura.
+esplicitate in §8 Open Questions (OQ-1, OQ-2, OQ-3).
+
+**Aggiornamento 2026-10-13.** OQ-1 e OQ-3 sono state chiuse durante
+l'implementazione; OQ-2 resta aperta. Il lavoro è proseguito per spec di
+funzionalità in `_bmad-output/specs/`, che sono il contratto di ciò che è
+costruito: Domande (`spec-questions-crud`), accesso della landing alle
+domande (`spec-landing-question-access`), Newsletter (`spec-newsletter`),
+Contenuti pagine (`spec-page-contents`). Lo stato aggiornato è in
+`_bmad-output/project-context.md`. La sezione Newsletter non corrisponde a
+nessuna FR di questo documento: è nata da una richiesta successiva del PO.
 
 ## 1. Vision
 
@@ -575,17 +583,22 @@ taglio)
 
 Un amministratore potrebbe modificare i testi di pagine editoriali del sito
 pubblico (es. "Il metodo", FAQ, chi siamo) senza intervento dello
-sviluppatore — **se e quando il perimetro di OQ-3 viene chiuso**. Nessun
-modello dati né consequence testabile è definito qui: questa FR resta un
-segnaposto finché OQ-3 non è risolto, non una specifica implementabile.
+sviluppatore.
+
+**Stato 2026-10-13: realizzata in parte.** OQ-3 è chiusa e il PO ha chiesto
+la sezione "Contenuti pagine", specificata in
+`_bmad-output/specs/spec-page-contents/`. Copre oggi una sola pagina, la
+home: titolo, sottotitolo, immagine hero, CTA e statistiche. Pagine come
+"Il metodo", FAQ e chi siamo non esistono ancora nella landing e restano
+fuori. Modello dati e criteri di verifica sono nella spec, non qui.
 
 **Notes:**
 - [NOTE FOR PM] La Roadmap la marca esplicitamente come non-MVP ("cambiare
   tre pagine due volte l'anno via sviluppatore costa meno di una giornata
   di CMS"). **Contraddice però ADR-002**, che ha ampliato il perimetro del
   backoffice per includere proprio i contenuti testuali principali della
-  landing su richiesta esplicita del PO. Questa tensione è OQ-3 — non
-  risolta qui.
+  landing su richiesta esplicita del PO. Questa tensione era OQ-3: chiusa a
+  favore di ADR-002.
 
 ---
 
@@ -629,9 +642,10 @@ consultabile e filtrabile, sessioni admin con scadenza breve.
 ## 5. Non-Goals (Explicit)
 
 - **Non è un CMS generico.** Il backoffice gestisce le entità del modello
-  dati canonico (§3) e, in tensione non risolta (OQ-3), i contenuti
-  editoriali della landing — non diventa uno strumento di gestione
-  contenuti generico per qualunque futuro bisogno.
+  dati canonico (§3) e i contenuti editoriali della landing, pagina per
+  pagina e campo per campo (OQ-3, chiusa) — non diventa uno strumento di
+  gestione contenuti generico per qualunque futuro bisogno: niente pagine
+  create dall'interfaccia, niente testo formattato libero.
 - **Non sostituisce Stripe per le operazioni finanziarie.** Rimborsi e
   gestione pagamenti restano nel cruscotto Stripe (FR-24).
 - **Non è raggiungibile dagli utenti finali della landing in nessuna
@@ -668,8 +682,9 @@ provato, esportazione, sicurezza).
   presa in questo PRD: la Roadmap la lascia esplicitamente aperta
   ("leggere §7 prima di pianificare"). Va decisa con il PO prima
   dell'architettura, non assunta.
-- FR-27 (Pagine editoriali) — marcata COULD dalla Roadmap ma in tensione con
-  ADR-002, vedi OQ-3.
+- FR-27 (Pagine editoriali) — marcata COULD dalla Roadmap. Anticipata in
+  parte su richiesta del PO: contenuti della home modificabili (vedi FR-27 e
+  `spec-page-contents`). Il resto delle pagine editoriali resta fuori.
 - Tutto Roadmap M7 (post-MVP): moderazione community, immagini mnemoniche
   generate, analitica contenuti avanzata, test A/B, multi-concorso,
   gamification.
@@ -709,8 +724,14 @@ provato, esportazione, sicurezza).
 
 ## 8. Open Questions
 
-1. **OQ-1 (blocking per l'architettura). Chiave Supabase e RLS nel
-   backoffice.** ADR-002 assumeva un backoffice server-side che usa la
+1. **OQ-1 — RISOLTA (2026-09-27): opzione (a).** La SPA usa solo la
+   publishable key e i permessi sono policy RLS: scrive solo chi è in
+   `public.admins` (funzione `is_admin()`), gli altri utenti autenticati
+   leggono soltanto, il login del backoffice rifiuta chi non è admin. Per
+   ciò che richiede un segreto (invio newsletter) esiste una Edge Function
+   Supabase: è il "livello server minimo" dell'opzione (b), limitato a quel
+   caso. Dettagli in `spec-questions-crud/data-model.md`. Testo originale:
+   *Chiave Supabase e RLS nel backoffice.* ADR-002 assumeva un backoffice server-side che usa la
    secret key per bypassare le RLS dietro autenticazione admin. Lo stack
    scelto (Refine + Vite, SPA pura) non può contenere la secret key in
    sicurezza. Va deciso: (a) policy RLS esplicite che concedano agli admin
@@ -727,7 +748,15 @@ provato, esportazione, sicurezza).
    agnostiche rispetto al framework UI), ma andrebbe chiuso con un ADR-005
    prima che l'assenza di una decisione formale diventi un problema in
    revisione tecnica.
-3. **OQ-3. Perimetro dei contenuti editoriali della landing.** ADR-002
+3. **OQ-3 — RISOLTA (2026-10-13).** (a) Il PO ha scelto i contenuti della
+   home: titolo, sottotitolo, immagine hero, CTA, statistiche. (b) Modello
+   dati: tabella `page_contents`, una riga per pagina con un documento JSON,
+   letto dalla landing tramite la RPC `get_page_content()`; né chiave/valore
+   generico né una tabella per sezione. La landing legge il documento lato
+   server e rigenera la pagina a ogni salvataggio, così i contenuti arrivano
+   come HTML completo a visitatori e motori di ricerca. Dettagli in
+   `spec-page-contents`. Testo originale: *Perimetro dei contenuti editoriali
+   della landing.* ADR-002
    include i testi principali della landing nel perimetro del backoffice;
    la Roadmap (§3, modello dati canonico) non li copre affatto, e li
    classifica anzi come COULD/primo taglio (FR-27). Non esiste un modello
@@ -772,6 +801,11 @@ provato, esportazione, sicurezza).
    solo sulla carta) ma non identiche. Vanno tradotte in una o più FR/NFR
    di test in fase di architettura, non assunte come già coperte da FR-2/
    FR-31.
+   **Stato 2026-10-13: coperta in parte.** `tests/api/` (`npm run test:api`)
+   verifica sul progetto Supabase reale cosa possono fare un visitatore
+   anonimo, un utente autenticato non admin e un admin. Mancano ancora
+   l'esecuzione automatica a ogni deploy e il controllo sul funnel
+   (`supabase.from(` fuori dalle cartelle designate).
 10. **OQ-10 (vincolo operativo, non una vera domanda aperta — riportato
     qui perché assente altrove nel documento). Sincronizzazione manuale
     dei tipi tra i due repository.** ADR-004 accetta esplicitamente che, in

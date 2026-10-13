@@ -45,9 +45,45 @@ diretto al database — vincolo di governance esplicito, non negoziabile
 - Repository: separato dalla landing (ADR-004), nessuna dipendenza di
   codice, nessun package condiviso — solo Supabase in comune
 
+## Stato attuale (aggiornato 2026-10-13)
+
+Sezioni del backoffice e relative spec in `_bmad-output/specs/`:
+
+| Sezione | Spec | Stato |
+|---|---|---|
+| Domande | `spec-questions-crud` | implementata, migrazioni applicate |
+| Accesso landing alle domande (solo DB) | `spec-landing-question-access` | implementata, migrazione applicata |
+| Newsletter (Clienti, Posta) | `spec-newsletter` | implementata, migrazioni applicate |
+| Contenuti pagine (Home) | `spec-page-contents` | implementata nel backoffice; migrazione 20261013120000 scritta, non applicata; lato landing da fare |
+
+Decisioni prese dopo la stesura dei punti qui sotto:
+
+- **Punto 1 (chiave Supabase): risolto, opzione (a).** La SPA usa solo la
+  publishable key; i permessi sono policy RLS. Scrive solo chi è in
+  `public.admins` (`is_admin()`); il login rifiuta chi non è admin. Quello che
+  richiede un segreto gira in una Edge Function Supabase (invio newsletter con
+  la chiave Resend), chiamata tramite `src/providers/custom/`.
+- **Punto 3 (contenuti editoriali): modello dati definito.** Tabella
+  `page_contents`, un documento JSON per pagina, letto dalla landing tramite
+  la RPC `get_page_content()`. Oggi copre solo l'hero della home.
+- **La landing non legge i contenuti dal browser.** Li legge lato server
+  (Next.js), tiene la pagina statica e la rigenera dopo un salvataggio,
+  avvisata da un Database Webhook Supabase. Motivo: niente pagina vuota in
+  caricamento, contenuti visibili ai motori di ricerca.
+- **Due bucket immagini.** `question-images` privato (URL firmati, scadono
+  dopo un'ora) per domande e mnemotecniche; `page-images` pubblico per le
+  pagine, perché un URL firmato scadrebbe dentro una pagina in cache.
+- **Le migrazioni stanno solo in questo repository**, anche per tabelle nate
+  nella landing (`email_signups`). La landing consuma lo schema e non lo
+  modifica.
+- **La landing scrive le iscrizioni alla mailing list come `anon`** con la
+  publishable key: solo insert, solo le colonne email, provenienza e versione
+  del testo di consenso.
+
 ## Punti da riconciliare tra Roadmap e ADR più recenti
 
-Non risolti d'autorità qui — vanno esplicitati nel PRD, non nascosti:
+Scritti prima delle decisioni sopra: i punti 1 e 3 sono chiusi, 2 e 4 restano
+aperti. Il PRD (§8, OQ-1 e OQ-3; FR-27) non è stato aggiornato di conseguenza.
 
 1. **Chiave Supabase lato backoffice.** ADR-002 assumeva un backoffice
    server-side (Next.js `/admin` o app Next.js dedicata) che usa la
@@ -89,7 +125,6 @@ Non risolti d'autorità qui — vanno esplicitati nel PRD, non nascosti:
 
 ## Scope di questa fase di pianificazione
 
-Sessione corrente: generazione del PRD iniziale a partire dalla Roadmap
-esistente, riconciliando le assunzioni superate (vedi sopra). Nessuna
-generazione di epic/story in questa sessione — quello è uno step successivo,
-dopo revisione del PRD.
+Il PRD iniziale è stato generato dalla Roadmap (2026-08-02). Da allora il
+lavoro procede per spec di funzionalità (`_bmad-output/specs/`), una per
+sezione, senza epic/story.
