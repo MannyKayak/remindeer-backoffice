@@ -22,7 +22,7 @@ Opportunity + safety. Questions now exist (spec-questions-crud) but the public l
   - **success:** With the anon key, selecting `questions` returns only `is_free = true` rows, with embedded options and mnemonic; premium rows never appear.
 - **CAP-2**
   - **intent:** A user checks whether a chosen option is correct without ever receiving the correct answer beforehand.
-  - **success:** `rpc('check_answer', {question_id, option_id})` returns `{is_correct, correct_option_id}` for a visible question; no table or column readable by anon/non-admin exposes correctness.
+  - **success:** `rpc('check_answer', {p_question_id, p_option_id})` returns `{is_correct, correct_option_id}` for a visible question; no table or column readable by anon/non-admin exposes correctness.
 - **CAP-3**
   - **intent:** Users can display images of questions and mnemonics they are allowed to see.
   - **success:** Anon can create signed URLs for images linked to free questions; images of premium questions are refused.
@@ -34,7 +34,7 @@ Opportunity + safety. Questions now exist (spec-questions-crud) but the public l
 
 - All schema changes are migrations in this (backoffice) repo; the landing repo never pushes migrations.
 - Correctness must not be selectable by anon in any table, view or embed (column grant on `question_options`).
-- Phase 1: `authenticated` = admins only; Auth signups disabled in Supabase dashboard. Landing login in a later phase invalidates this and requires redesign.
+- Phase 1: `authenticated` = admins only; Auth signups disabled in Supabase dashboard. Landing login in a later phase invalidates this and requires redesign. The database does not rely on this for writes (admin-only via `is_admin()`), but it does for reads: an authenticated non-admin can read every question and `is_correct`.
 - Writes remain admin-only (migration 20260927140000).
 - Premium questions: invisible to anon; entitlement model deferred to later phases.
 - Landing reads through its own `lib/data/` funnel (ADR-003); types regenerated manually (ADR-004).
@@ -44,6 +44,7 @@ Opportunity + safety. Questions now exist (spec-questions-crud) but the public l
 - Landing login, entitlement / premium subscription model and Stripe (later phases).
 - Landing UI and its `lib/data/` code (landing repo, separate prompt).
 - Answer statistics, attempts (`tentativo`, `risposta_tentativo`).
+- Other landing access paths, each in its own spec: mailing-list signup insert (`../spec-newsletter/`) and page content read (`../spec-page-contents/`). `access-rules.md` lists them for a complete picture of what anon can do.
 - Rate limiting of `check_answer`.
 
 ## Success signal

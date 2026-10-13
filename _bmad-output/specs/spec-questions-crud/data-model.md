@@ -74,7 +74,7 @@ Check: `text is not null or image_id is not null`. Covers both example shapes: #
 | old_data / new_data | jsonb | row before / after |
 | created_at | timestamptz | |
 
-Written only by `security definer` trigger on every content table; admins read-only.
+Written only by `security definer` trigger on every content table; admins read-only. An update that leaves the row unchanged writes no entry, and `updated_at` is bumped only when another column changes (migration 20260927130000). Later specs attach the same trigger to `email_signups`, `newsletters`, `newsletter_recipients` and `page_contents`.
 
 ## Relationships
 
@@ -108,5 +108,11 @@ Image upload: Supabase Storage upload + `images` insert, both via `providers/cus
 
 ## Security
 
-- RLS enabled on all tables; policy `authenticated` → select/insert/update/delete. No `anon` access in this scope (landing public read policies = separate concern).
-- Storage bucket `question-images`: private-by-default read for `authenticated`; write for `authenticated`. Max size 5 MB, mime whitelist png/jpeg/webp.
+Current state, after migrations 20260927140000 (admin role) and 20260927150000 (landing read):
+
+- Admins: table `admins (user_id PK → auth.users, created_at)`; `is_admin()` (security definer) is true when the caller is listed. A user reads only their own `admins` row. Rows are added manually.
+- RLS enabled on all tables. `categories`, `images`, `questions`, `question_options`, `mnemonics`: `authenticated` → select; insert/update/delete only when `is_admin()`. `audit_log`: select only when `is_admin()`.
+- `save_question` refuses non-admins with `42501` before touching any row.
+- `anon` (landing visitors): read access to free questions only, without `is_correct`; rules in `../spec-landing-question-access/access-rules.md`.
+- Storage bucket `question-images` (private): `authenticated` reads; only admins upload and delete; anon signs URLs only for images of free questions. Max size 5 MB, mime whitelist png/jpeg/webp.
+- Page images do not use this bucket or the `images` table: they live in the public bucket `page-images` (`../spec-page-contents/data-model.md`).

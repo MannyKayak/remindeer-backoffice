@@ -16,7 +16,9 @@ Postgres (Supabase, schema `public`). Existing table reused; two new tables.
 
 Consent proof (migration 20261008120000): the three columns are null only on rows created before it (no proof of consent exists for them). Anon inserts must carry `source` and `consent_text_version`; `consent_given_at` and `consent_text_version` are null together or set together.
 
-Change (migration in this repo — backoffice owns the schema from now on): admin policies select/update/delete `using is_admin()`. No admin insert (manual add is TODO, pending iubenda). Landing secret-key insert unaffected.
+Change (migration in this repo — backoffice owns the schema from now on): admin policies select/update/delete `using is_admin()`. No admin insert (manual add is TODO, pending iubenda).
+
+Landing insert (migration 20260928090000, extended by 20261008120000): the form writes with the publishable key as `anon`. Anon has insert on columns `email`, `source`, `consent_text_version` only, under a policy requiring a lowercase trimmed email ≤ 254 chars and both `source` and `consent_text_version` present. It cannot set `id`, `created_at` or `consent_given_at`, and has no select, update or delete.
 
 ### `newsletters`
 | column | type | notes |
@@ -73,6 +75,6 @@ Retry (CAP-11, secondary): same function with `retry=true` on a `sent` newslette
 
 ## Security
 
-- RLS on all three tables: admin-only via `is_admin()`. No `anon` access.
+- RLS on all three tables: admin-only via `is_admin()`. `anon` has no access, except the insert-only path on `email_signups` described above.
 - Audit: trigger `write_audit_log()` (migration 20260927120000) attached to all three tables.
 - `RESEND_API_KEY` only as Edge Function secret.

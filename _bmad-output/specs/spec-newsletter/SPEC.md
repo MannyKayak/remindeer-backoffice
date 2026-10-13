@@ -58,7 +58,9 @@ Opportunity + pain. The landing "Tienimi aggiornato" form already collects email
 - Send is idempotent: status moves draft → sending → sent atomically; a second request on a newsletter not in draft is refused; each recipient is sent at most once (per-recipient status + Resend idempotency key).
 - Only drafts are editable or deletable. Sent newsletters are immutable; the only allowed action is CAP-11 retry of failed recipients.
 - Email: valid format, ≤ 254 chars, stored lowercase, unique case-insensitive (existing unique index on `lower(email)`). Subject required ≤ 255 chars; body required plain text; ≥ 1 recipient to save or send.
-- Backoffice owns the `email_signups` schema from now on: new policies/columns go through migrations in this repo. Admin-only access via `is_admin()`; the landing's secret-key insert path keeps working.
+- Backoffice owns the `email_signups` schema from now on: new policies/columns go through migrations in this repo. Read, update and delete are admin-only via `is_admin()`.
+- The landing form inserts signups with the publishable key (role `anon`), not the secret key. Anon may only insert, and only the columns `email`, `source` and `consent_text_version`; it cannot read, update or delete the list (migrations 20260928090000, 20261008120000).
+- Each signup carries its consent proof: where it came from (`source`), which consent text was accepted (`consent_text_version`) and when (`consent_given_at`, set by the database so it cannot be forged). Signups older than the proof columns have none.
 - Every insert/update/delete on `email_signups`, `newsletters`, `newsletter_recipients` is written to `audit_log` by the existing `write_audit_log()` trigger (same as questions). Landing inserts are logged with null actor.
 - shadcn/ui, Refine + Vite SPA, zod validation, ADR-003 funnel.
 
@@ -70,7 +72,8 @@ Opportunity + pain. The landing "Tienimi aggiornato" form already collects email
 - Scheduled sending, open/click tracking, analytics.
 - `quiz_completions.email` addresses (separate capture path, never merged with signups).
 - Segments or saved recipient lists beyond the per-newsletter selection.
-- Changes to the landing signup form.
+- Changes to the landing signup form (landing repo). This repo only defines what the form is allowed to insert.
+- Showing the consent proof in Clienti: the columns exist but the list shows only email and signup date.
 
 ## Success signal
 
