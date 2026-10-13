@@ -20,6 +20,7 @@ import {
   NewsletterShowPage,
   SubscriberListPage,
 } from "@/pages/newsletter";
+import { HomePageContentPage } from "@/pages/page-contents";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -51,6 +52,11 @@ function App() {
             edit: "/newsletter/posta/edit/:id",
             show: "/newsletter/posta/show/:id",
             meta: { label: "Posta" },
+          },
+          {
+            name: "page_contents",
+            list: "/contenuti",
+            meta: { label: "Contenuti pagine" },
           },
         ]}
         options={{
@@ -84,6 +90,10 @@ function App() {
               <Route path="posta/create" element={<NewsletterCreatePage />} />
               <Route path="posta/edit/:id" element={<NewsletterEditPage />} />
               <Route path="posta/show/:id" element={<NewsletterShowPage />} />
+            </Route>
+            <Route path="/contenuti">
+              <Route index element={<Navigate to="home" replace />} />
+              <Route path="home" element={<HomePageContentPage />} />
             </Route>
           </Route>
 

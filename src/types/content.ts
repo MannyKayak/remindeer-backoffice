@@ -57,7 +57,25 @@ export type EmailSignup = {
   consent_text_version: string | null;
 };
 
-export type NewsletterStatus = "draft" | "sending" | "sent";
+/** JSON document of the home page, as served to the landing by get_page_content('home'). */
+export type HomePageContent = {
+  title: string;
+  subtitle: string;
+  cta: { label: string; note: string };
+  stats: { value: string; label: string }[];
+  /** `path` is an object path in the public `page-images` bucket; null = landing default image. */
+  hero_image: { path: string; alt: string } | null;
+};
+
+export type PageContent = {
+  id: string;
+  slug: string;
+  /** Shape depends on the page; read it through the page's own parser. */
+  content: unknown;
+  updated_at: string;
+};
+
+export type NewsletterStatus ="draft" | "sending" | "sent";
 export type DeliveryStatus = "pending" | "sent" | "failed";
 
 export type NewsletterRecipient = {
