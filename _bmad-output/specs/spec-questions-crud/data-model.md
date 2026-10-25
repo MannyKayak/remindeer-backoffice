@@ -11,7 +11,7 @@ Postgres (Supabase, schema `public`). English names; concepts map to Roadmap §3
 | name | varchar(255) not null unique | e.g. "Tecnologia farmaceutica", "Legislazione" |
 | created_at | timestamptz not null default `now()` | |
 
-Seeded by migration. Roadmap fields (`slug`, `criteri_di_inclusione/esclusione`, `colore`, `ordine`) deferred to categories spec.
+Seeded by migration; CRUD and a case-insensitive unique index on `lower(btrim(name))` defined in `../spec-categories-crud/`. Roadmap fields (`slug`, `criteri_di_inclusione/esclusione`, `colore`, `ordine`) still deferred.
 
 ### `images`
 | column | type | notes |

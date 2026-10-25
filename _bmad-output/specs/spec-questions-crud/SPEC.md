@@ -55,7 +55,7 @@ Pain + vision. The PO can log in but cannot yet manage any content; questions ar
 ## Non-goals
 
 - Import of the 3000 questions (FR-4/5/6).
-- Categories CRUD (FR-18) — categories seeded.
+- Categories CRUD (FR-18) — owned by `../spec-categories-crud/`.
 - Mnemonic variants, style, publication workflow (FR-15/16).
 - Question status / draft state; search/filters beyond basic list (rest of FR-11).
 - Warning for free questions without mnemonic (FR-25).
@@ -68,7 +68,7 @@ Pain + vision. The PO can log in but cannot yet manage any content; questions ar
 ## Assumptions
 
 - Delete asks for confirmation; images stay in the `images` table after the question is deleted.
-- Categories "Tecnologia farmaceutica" and "Legislazione" seeded by migration; form uses a select.
+- Categories "Tecnologia farmaceutica" and "Legislazione" seeded by migration; further ones managed in the "Categorie" section (`../spec-categories-crud/`); form uses a select listing all categories.
 - PRD OQ-1 is resolved as option (a): publishable key in the SPA, access enforced by RLS. Any authenticated user reads the content tables; only admins write. Anon access for the landing is defined in `../spec-landing-question-access/`.
 - One mnemonic per question for now; table already separate so variants can come later.
 - Single category per question (PRD OQ-8 left open; migration to many-to-many possible later).

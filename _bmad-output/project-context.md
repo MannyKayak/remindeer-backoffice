@@ -55,6 +55,7 @@ Sezioni del backoffice e relative spec in `_bmad-output/specs/`:
 | Accesso landing alle domande (solo DB) | `spec-landing-question-access` | implementata, migrazione applicata |
 | Newsletter (Clienti, Posta) | `spec-newsletter` | implementata, migrazioni applicate |
 | Contenuti pagine (Home) | `spec-page-contents` | implementata nel backoffice; migrazione 20261013120000 scritta, non applicata; lato landing da fare |
+| Categorie | `spec-categories-crud` | implementata nel backoffice; migrazione 20261025120000 scritta, non applicata |
 
 Decisioni prese dopo la stesura dei punti qui sotto:
 

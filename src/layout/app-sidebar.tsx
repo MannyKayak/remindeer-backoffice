@@ -5,6 +5,7 @@ import {
   LayoutDashboardIcon,
   MailIcon,
   PanelsTopLeftIcon,
+  TagsIcon,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -35,6 +36,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/", icon: LayoutDashboardIcon },
   { label: "Domande", to: "/questions", icon: FileQuestionIcon },
+  { label: "Categorie", to: "/categories", icon: TagsIcon },
   { label: "Newsletter", to: "/newsletter", icon: MailIcon },
   {
     label: "Contenuti pagine",
