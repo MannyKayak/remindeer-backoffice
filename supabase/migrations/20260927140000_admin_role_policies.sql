@@ -29,10 +29,7 @@ $$;
 revoke execute on function public.is_admin() from public, anon;
 grant execute on function public.is_admin() to authenticated;
 
--- Initial admin (Product Owner account).
-insert into public.admins (user_id)
-values ('7424cb6a-41f7-4ff3-a92f-05c4285ef337')
-on conflict (user_id) do nothing;
+
 
 -- ---------------------------------------------------------------------------
 -- Content tables: read for authenticated users, write for admins only.
