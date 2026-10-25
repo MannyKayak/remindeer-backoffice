@@ -92,8 +92,13 @@ page — never call `supabaseClient` inline in the page itself.
 |---|---|---|---|
 | Dashboard | `/` | placeholder page after login | — |
 | Domande | `/questions` | list, create, edit and delete questions with options, correct answer, category, images, mnemonic, free/paid flag | `spec-questions-crud` |
+| Categorie | `/categories` | list categories with their question count; create, rename and delete them (delete refused while a question uses the category) | `spec-categories-crud` |
 | Newsletter | `/newsletter` | tab Clienti: emails collected by the landing form; tab Posta: write, save and send newsletters to selected subscribers | `spec-newsletter` |
 | Contenuti pagine → Home | `/contenuti/home` | edit the landing home page: title, subtitle, hero image, call to action, statistics | `spec-page-contents` |
+
+Categorie needs migration `20261025120000_categories_name_ci_unique.sql` (names unique ignoring
+case), written but not yet applied (as of 2026-10-25); without it duplicates differing only by
+case are accepted. Applying it fails if such duplicates already exist: rename them first.
 
 Contenuti pagine needs migration `20261013120000_page_contents.sql`, which is written but not
 yet applied to the Supabase project (as of 2026-10-13); until then its page shows a load

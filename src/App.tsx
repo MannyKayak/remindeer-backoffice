@@ -12,6 +12,7 @@ import { AppLayout } from "@/layout/app-layout";
 import { LoginPage } from "@/pages/login";
 import { DashboardPage } from "@/pages/dashboard";
 import { QuestionCreatePage, QuestionEditPage, QuestionListPage } from "@/pages/questions";
+import { CategoryCreatePage, CategoryEditPage, CategoryListPage } from "@/pages/categories";
 import {
   NewsletterCreatePage,
   NewsletterEditPage,
@@ -39,6 +40,13 @@ function App() {
             create: "/questions/create",
             edit: "/questions/edit/:id",
             meta: { label: "Domande" },
+          },
+          {
+            name: "categories",
+            list: "/categories",
+            create: "/categories/create",
+            edit: "/categories/edit/:id",
+            meta: { label: "Categorie" },
           },
           {
             name: "email_signups",
@@ -80,6 +88,11 @@ function App() {
               <Route index element={<QuestionListPage />} />
               <Route path="create" element={<QuestionCreatePage />} />
               <Route path="edit/:id" element={<QuestionEditPage />} />
+            </Route>
+            <Route path="/categories">
+              <Route index element={<CategoryListPage />} />
+              <Route path="create" element={<CategoryCreatePage />} />
+              <Route path="edit/:id" element={<CategoryEditPage />} />
             </Route>
             <Route path="/newsletter">
               <Route element={<NewsletterLayout />}>
